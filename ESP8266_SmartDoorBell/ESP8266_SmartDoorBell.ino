@@ -25,7 +25,7 @@ ADC_MODE(ADC_VCC);
 #define WLAN_SSID       ""
 #define WLAN_PASS       ""
 
-/************************* Adafruit.io Setup *********************************/
+/************************* MQTT Server Setup *********************************/
 
 #define AIO_SERVER      "server"
 #define AIO_SERVERPORT  1883                   // use 8883 for SSL
@@ -44,18 +44,13 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 
 /****************************** Feeds ***************************************/
 
-// Setup a feed called 'photocell' for publishing.
-// Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
+
 Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, "/klingel");
 Adafruit_MQTT_Publish battery = Adafruit_MQTT_Publish(&mqtt, "/battery");
 
-// Setup a feed called 'onoff' for subscribing to changes.
-//Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/onoff");
 
 /*************************** Sketch Code ************************************/
 
-// Bug workaround for Arduino 1.6.6, it seems to need a function declaration
-// for some reason (only affects ESP8266, likely an arduino-builder bug).
 void MQTT_connect();
 
 void setup() {
@@ -79,32 +74,13 @@ void setup() {
 
   Serial.println("WiFi connected");
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
-
-  // Setup MQTT subscription for onoff feed.
-  //mqtt.subscribe(&onoffbutton);
 }
 
 uint32_t x = 0;
 
 void loop() {
-  // Ensure the connection to the MQTT server is alive (this will make the first
-  // connection and automatically reconnect when disconnected).  See the MQTT_connect
-  // function definition further below.
   yield();
   MQTT_connect();
-
-  // this is our 'wait for incoming subscription packets' busy subloop
-  // try to spend your time here
-
-  /*Adafruit_MQTT_Subscribe *subscription;
-    while ((subscription = mqtt.readSubscription(5000))) {
-    if (subscription == &onoffbutton) {
-      Serial.print(F("Got: "));
-      Serial.println((char *)onoffbutton.lastread);
-    }
-    }*/
-
-  // Now we can publish stuff!
 
   Serial.print(F("\nSENDING door change "));
   Serial.print(1);
@@ -134,11 +110,6 @@ void loop() {
   delay(20);
 
   ESP.deepSleep(0);
-  /*
-    if(! mqtt.ping()) {
-    mqtt.disconnect();
-    }
-  */
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
